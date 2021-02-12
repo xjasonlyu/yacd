@@ -36,10 +36,31 @@ type ConnectionsData = {
   connections: Array<ConnectionItem>;
 };
 
+function handleData(cs: ConnectionsData) {
+  const url = 'http://10.0.0.2:9090/connections';
+  const http = new XMLHttpRequest();
+  http.open("GET", url, false);
+  http.send();
+  const ts = JSON.parse(http.responseText);
+  for (let i = 0; i < cs.connections.length; i++) {
+    let cm = cs.connections[i].metadata;
+    for (let j = 0; j < ts.connections.length; j++) {
+      let tm = ts.connections[j].metadata;
+      if ((tm.network === 'tcp' && tm.dialerIP === cm.sourceIP || tm.network === 'udp')
+        && tm.dialerPort.toString() === cm.sourcePort) {
+        cs.connections[i].metadata.sourceIP = tm.sourceIP;
+        cs.connections[i].metadata.sourcePort = tm.sourcePort.toString();
+        break;
+      }
+    }
+  }
+  return cs;
+}
+
 function appendData(s: string) {
   let o: ConnectionsData;
   try {
-    o = JSON.parse(s);
+    o = handleData(JSON.parse(s));
   } catch (err) {
     // eslint-disable-next-line no-console
     console.log('JSON.parse error', JSON.parse(s));
