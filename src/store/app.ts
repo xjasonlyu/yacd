@@ -160,7 +160,7 @@ export function updateCollapsibleIsOpen(
 }
 
 const defaultClashAPIConfig = {
-  baseURL: document.getElementById('app')?.getAttribute('data-base-url') ?? 'http://127.0.0.1:9090',
+  baseURL: document.getElementById('app')?.getAttribute('data-base-url') ?? 'http://10.0.0.7:9090',
   secret: '',
   addedAt: 0,
 };
