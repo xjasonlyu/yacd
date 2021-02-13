@@ -13,4 +13,4 @@ build:
 	yarn build
 
 pack:
-	tar -czvf $(NAME).tar.gz $(PUBLIC)
+	zip -r $(NAME).zip $(PUBLIC)
