@@ -66,9 +66,10 @@ function handleData(cs: ConnectionsData) {
         let cm = cs.connections[i].metadata;
         for (let j = 0; j < ts.connections.length; j++) {
           let tm = ts.connections[j].metadata;
-          if ((tm.network === cm.network)
-            && (tm.dialerPort.toString() === cm.sourcePort)
-            && ((tm.network === 'tcp' && tm.dialerIP === cm.sourceIP) || (tm.network === 'udp'))) {
+          if (
+            (tm.network === cm.network && tm.dialerPort.toString() === cm.sourcePort) &&
+            ((tm.network === 'tcp' && tm.dialerIP === cm.sourceIP) || (tm.network === 'udp'))
+          ) {
             cm.sourceIP = tm.sourceIP;
             cm.sourcePort = tm.sourcePort.toString();
             break;
