@@ -46,6 +46,55 @@ type ConnectionsData = {
   uploadTotal: number;
   connections: Array<ConnectionItem>;
 };
+type tunConnectionItem = {
+  id: UUID;
+  metadata: {
+    network: ConnNetwork;
+    sourceIP: string;
+    dialerIP: string;
+    destinationIP: string;
+    sourcePort: number;
+    dialerPort: number;
+    destinationPort: number;
+  };
+  upload: number;
+  download: number;
+  start: string;
+};
+type tunConnectionsData = {
+  downloadTotal: number;
+  uploadTotal: number;
+  connections: Array<tunConnectionItem>;
+};
+
+function handleData(cs: ConnectionsData) {
+  const url = 'http://10.0.0.2:9090/connections';
+  fetch(url)
+    .then((response) => response.json())
+    .then((ts: tunConnectionsData) => {
+      for (let i = 0; i < cs.connections.length; i++) {
+        let cm = cs.connections[i].metadata;
+        for (let j = 0; j < ts.connections.length; j++) {
+          let tm = ts.connections[j].metadata;
+          if (
+            tm.network === cm.network &&
+            tm.dialerPort.toString() === cm.sourcePort &&
+            ((tm.network === 'tcp' && tm.dialerIP === cm.sourceIP) || tm.network === 'udp')
+          ) {
+            cm.sourceIP = tm.sourceIP;
+            cm.sourcePort = tm.sourcePort.toString();
+            break;
+          }
+        }
+      }
+    })
+    .then(() => {
+      subscribers.forEach((s) => s.listner(cs));
+    })
+    .catch((err) => {
+      console.error('fetch error', err);
+    });
+}
 
 function appendData(s: string) {
   let o: ConnectionsData;
@@ -61,9 +110,9 @@ function appendData(s: string) {
     });
   } catch (err) {
     // eslint-disable-next-line no-console
-    console.log('JSON.parse error', JSON.parse(s));
+    console.error('JSON.parse error', err);
   }
-  subscribers.forEach((s) => s.listner(o));
+  handleData(o);
 }
 
 type UnsubscribeFn = () => void;
@@ -72,7 +121,7 @@ let wsState: number;
 export function fetchData(
   apiConfig: ClashAPIConfig,
   listener: unknown,
-  onClose: () => void
+  onClose: () => void,
 ): UnsubscribeFn | void {
   if (fetched || wsState === 1) {
     if (listener)
